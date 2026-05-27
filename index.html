@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>✦ Nidhi & Jitesh</title>
+<script src="page-flip.browser.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: #0c0810;
+  font-family: 'Jost', sans-serif;
+  touch-action: none;
+}
+
+/* ── ROTATE SCREEN ── */
+#rotate-screen {
+  display: none;
+  position: fixed; inset: 0;
+  background: #0c0810;
+  z-index: 9999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+@media (orientation: portrait)  { #rotate-screen { display: flex; } #app { display: none !important; } }
+@media (orientation: landscape) { #rotate-screen { display: none; } }
+
+body.force-landscape #rotate-screen { display: none !important; }
+body.force-landscape #app           { display: flex !important; }
+
+body.force-landscape {
+  transform-origin: top left;
+}
+
+.rot-card {
+  background: #fff;
+  border-radius: 22px;
+  padding: 44px 34px 38px;
+  max-width: 350px; width: 88%;
+  text-align: center;
+  position: relative; overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,.7);
+}
+.rot-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 5px;
+  background: linear-gradient(90deg, #c06090, #7040c0);
+}
+.rot-icon { width: 118px; height: 86px; margin: 0 auto 24px; }
+.rot-card h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.75rem; color: #1a1a1a; margin-bottom: 10px;
+}
+.rot-card p { font-size: .88rem; color: #666; line-height: 1.65; margin-bottom: 28px; }
+.rot-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  background: linear-gradient(135deg, #c06090, #7040c0);
+  color: #fff; border: none;
+  padding: 14px 28px; border-radius: 50px;
+  font-size: .95rem; font-family: 'Jost', sans-serif; font-weight: 500;
+  cursor: pointer; width: 100%; letter-spacing: .4px;
+  box-shadow: 0 6px 22px rgba(192,96,144,.45);
+  transition: transform .15s, box-shadow .15s;
+}
+.rot-btn:active { transform: scale(.97); }
+.rot-footer { margin-top: 18px; font-size: .7rem; color: #bbb; }
+.rot-footer a { color: #9060c0; text-decoration: none; }
+.rot-cover-wrap {
+  width: 100%; margin: 18px 0 20px;
+  border-radius: 16px; overflow: hidden;
+  box-shadow: 0 8px 28px rgba(0,0,0,.18);
+  aspect-ratio: 3/2;
+}
+.rot-cover-img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  border-radius: 16px;
+}
+
+/* ── APP ── */
+#app {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: radial-gradient(ellipse 90% 80% at 50% 55%, #1c0e2a 0%, #0c0810 100%);
+}
+
+/* top bar */
+#topbar {
+  position: absolute; top: 0; left: 0; right: 0; height: 52px;
+  display: flex; align-items: center; padding: 0 16px;
+  z-index: 100;
+  background: linear-gradient(to bottom, rgba(0,0,0,.45), transparent);
+}
+#atitle {
+  font-family: 'Playfair Display', serif;
+  color: rgba(255,255,255,.85); font-size: 1.1rem;
+  letter-spacing: 2.5px; font-style: italic;
+}
+.tb-btn {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.13);
+  color: rgba(255,255,255,.75); width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .2s; margin-left: 8px;
+}
+.tb-btn:hover { background: rgba(255,255,255,.18); color: #fff; }
+#tb-right { margin-left: auto; display: flex; gap: 6px; }
+
+/* stage */
+#stage {
+  width: 100%;
+  height: calc(100% - 52px - 62px);
+  margin-top: 52px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+
+#book-container {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* StPageFlip overrides */
+.stf__parent { background: transparent !important; }
+.stf__wrapper { box-shadow: 0 20px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.04); }
+
+/* Hide raw pages until flipbook takes over */
+#book { visibility: hidden; }
+#book.ready { visibility: visible; }
+
+/* page images */
+.page {
+  background: #f0ebe4;
+  overflow: hidden;
+}
+.page img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  user-select: none; pointer-events: none;
+  -webkit-user-drag: none;
+}
+.page-loading {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: #ede8e0; color: #bbb; font-size: .75rem;
+  letter-spacing: 1px;
+}
+.page.hard {
+  background: linear-gradient(135deg, #2a1535 0%, #1a0d25 100%);
+}
+.page.hard img { opacity: .9; }
+
+/* ── CONTROLS ── */
+#controls {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 62px;
+  display: flex; align-items: center; justify-content: center; gap: 18px;
+  z-index: 100;
+  background: linear-gradient(to top, rgba(0,0,0,.4), transparent);
+}
+.cb {
+  background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,255,255,.14);
+  color: #fff; width: 42px; height: 42px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .2s, transform .12s;
+  backdrop-filter: blur(10px);
+}
+.cb:hover  { background: rgba(255,255,255,.2); }
+.cb:active { transform: scale(.89); }
+.cb.disabled { opacity: .25; pointer-events: none; }
+#pgind {
+  color: rgba(255,255,255,.7); font-size: .82rem;
+  letter-spacing: 1.5px; min-width: 80px; text-align: center;
+}
+
+/* ── GRID ── */
+#grid-ov {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,4,14,.95); z-index: 200;
+  overflow-y: auto; padding: 58px 16px 28px;
+  backdrop-filter: blur(6px);
+}
+#grid-ov.open { display: block; }
+#gcls {
+  position: fixed; top: 12px; right: 14px;
+  background: rgba(255,255,255,.1); border: none;
+  color: #fff; width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 201;
+  transition: background .2s;
+}
+#gcls:hover { background: rgba(255,255,255,.2); }
+#gtitle {
+  text-align: center; color: rgba(255,255,255,.65);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem; margin-bottom: 22px; letter-spacing: 2px;
+}
+#gpages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px; max-width: 1000px; margin: 0 auto;
+}
+.gthumb {
+  aspect-ratio: 3/2; border-radius: 6px; overflow: hidden;
+  cursor: pointer; border: 2px solid transparent;
+  transition: border-color .2s, transform .15s;
+  position: relative; background: #1a1020;
+}
+.gthumb:hover { border-color: #c06090; transform: scale(1.05); }
+.gthumb img { width: 100%; height: 100%; object-fit: cover; }
+.gthumb .glbl {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,.55); color: rgba(255,255,255,.7);
+  font-size: .6rem; text-align: center; padding: 3px 0; letter-spacing: .5px;
+}
+
+/* music note */
+#mnote {
+  position: absolute; bottom: 70px; left: 16px;
+  color: rgba(255,255,255,.28); font-size: 1rem; pointer-events: none;
+  animation: mnb 2.2s ease-in-out infinite alternate;
+}
+@keyframes mnb {
+  from { transform: translateY(0) rotate(-10deg); }
+  to   { transform: translateY(-6px) rotate(8deg); }
+}
+
+/* info panel */
+#info-panel {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,4,14,.92); z-index: 200;
+  align-items: center; justify-content: center;
+}
+#info-panel.open { display: flex; }
+.info-card {
+  background: #1a0d2a; border: 1px solid rgba(255,255,255,.1);
+  border-radius: 18px; padding: 36px; max-width: 340px; width: 88%;
+  text-align: center; color: #fff;
+}
+.info-card h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem; margin-bottom: 8px; font-style: italic;
+}
+.info-card p { color: rgba(255,255,255,.5); font-size: .8rem; line-height: 1.7; }
+.info-card .close-info {
+  margin-top: 24px; background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15); color: #fff;
+  padding: 10px 28px; border-radius: 50px; cursor: pointer;
+  font-size: .85rem; transition: background .2s;
+}
+.info-card .close-info:hover { background: rgba(255,255,255,.18); }
+
+/* loader */
+#loader {
+  position: fixed; inset: 0; background: #0c0810; z-index: 300;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  transition: opacity 0.4s ease;
+}
+#loader p { color: rgba(255,255,255,.45); font-size: .85rem; letter-spacing: 1.5px; }
+.spin {
+  width: 38px; height: 38px;
+  border: 3px solid rgba(192,96,144,.2); border-top-color: #c06090;
+  border-radius: 50%; animation: sp .75s linear infinite;
+}
+@keyframes sp { to { transform: rotate(360deg); } }
+#load-progress { color: rgba(255,255,255,.3); font-size: .75rem; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<!-- ROTATE SCREEN -->
+<div id="rotate-screen">
+  <div class="rot-card">
+    <div class="rot-icon">
+      <svg viewBox="0 0 118 86" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7" y="3" width="30" height="54" rx="5" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1.5"/>
+        <rect x="12" y="9" width="20" height="34" rx="1.5" fill="#c06090" opacity=".2"/>
+        <circle cx="22" cy="51" r="2.5" fill="#d1d5db"/>
+        <path d="M51 32 Q63 8 83 18" stroke="url(#rg)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M80 11 L83 18 L76 20" stroke="url(#rg)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="67" y="33" width="44" height="28" rx="5" fill="#e5e7eb" stroke="#d1d5db" stroke-width="1.5"/>
+        <rect x="73" y="39" width="30" height="16" rx="1.5" fill="#7040c0" opacity=".2"/>
+        <circle cx="107" cy="47" r="2.5" fill="#d1d5db"/>
+        <defs>
+          <linearGradient id="rg" x1="51" y1="32" x2="83" y2="18" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#c06090"/><stop offset="1" stop-color="#7040c0"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <h2>Rotate Your Device</h2>
+    <p>Please rotate your device to landscape mode for the best viewing experience</p>
+    <div class="rot-cover-wrap">
+      <img src="1.jpg" alt="Album Cover" class="rot-cover-img" />
+    </div>
+    <button class="rot-btn" onclick="enterAlbum()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 2v6h-6M3 12a9 9 0 0115-6.7L21 8M3 22v-6h6M21 12a9 9 0 01-15 6.7L3 16"/>
+      </svg>
+      Open Album
+    </button>
+    <p class="rot-footer">This album is digitally managed by her Brother</p>
+  </div>
+</div>
+
+<!-- BACKGROUND AUDIO -->
+<audio id="bgAudio" loop preload="auto">
+  <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<!-- APP -->
+<div id="app">
+  <div id="topbar">
+    <span id="atitle">✦ Nidhi & Jitesh</span>
+    <div id="tb-right">
+      <button class="tb-btn" onclick="openGrid()" title="All pages">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+      </button>
+      <button class="tb-btn" onclick="toggleInfo()" title="Info">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/>
+        </svg>
+      </button>
+      <button class="tb-btn" onclick="shareAlbum()" title="Share">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+      </button>
+      <button class="tb-btn" onclick="toggleFS()" title="Fullscreen">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="stage">
+    <div id="book-container">
+      <div id="book">
+        <!-- pages injected by JS -->
+      </div>
+    </div>
+    <div id="mnote">♪♫</div>
+  </div>
+
+  <div id="controls">
+    <button class="cb" id="prevBtn" onclick="flipPrev()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <span id="pgind">Cover</span>
+    <button class="cb" id="nextBtn" onclick="flipNext()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- GRID -->
+<div id="grid-ov">
+  <button id="gcls" onclick="closeGrid()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+  <p id="gtitle">All Pages</p>
+  <div id="gpages"></div>
+</div>
+
+<!-- INFO PANEL -->
+<div id="info-panel">
+  <div class="info-card">
+    <h3 id="info-title">✦ Nidhi & Jitesh</h3>
+    <p id="info-sub">Photo by Studio<br>Printed by Color Lab</p>
+    <br>
+    <p style="font-size:.72rem; color:rgba(255,255,255,.3)">
+      Drag any page corner to flip · Swipe on mobile · Arrow keys to navigate
+    </p>
+    <button class="close-info" onclick="toggleInfo()">Close</button>
+  </div>
+</div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="spin"></div>
+  <p>Loading your album…</p>
+  <p id="load-progress"></p>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  ★  CONFIGURE YOUR ALBUM HERE  ★
+// ═══════════════════════════════════════════════════════
+const CFG = {
+  title:       " Nidhi & Jitesh",
+  photographer: "😁",
+  lab:         "🤞",
+  totalPages:  66,
+  imgPath:     "",
+  imgName: (n) => `${n}.jpg`,
+};
+// ═══════════════════════════════════════════════════════
+
+const TOTAL = CFG.totalPages;
+let pageFlip = null;
+let flipBookReady = false;
+
+// ── Calculate book dimensions ──
+function getBookDims() {
+  const el = document.getElementById('stage');
+  const sw = el.clientWidth;
+  const sh = el.clientHeight;
+  const ratio = 1.46;
+  let bw = Math.min(sw * 0.96, sh * ratio * 2 * 0.96);
+  let bh = bw / (ratio * 2);
+  if (bh > sh * 0.94) { bh = sh * 0.94; bw = bh * ratio * 2; }
+  return { w: Math.floor(bw / 2), h: Math.floor(bh) };
+}
+
+// ── Build page divs ──
+function buildPages() {
+  const bookEl = document.getElementById('book');
+  bookEl.innerHTML = '';
+  bookEl.classList.remove('ready');
+
+  const coverFront = makeHardPage(1, 'Front Cover');
+  bookEl.appendChild(coverFront);
+
+  for (let p = 2; p <= TOTAL - 1; p++) {
+    bookEl.appendChild(makeInnerPage(p));
+  }
+
+  const coverBack = makeHardPage(TOTAL, 'Back Cover');
+  bookEl.appendChild(coverBack);
+}
+
+function makeHardPage(n, label) {
+  const div = document.createElement('div');
+  div.className = 'page hard';
+  div.dataset.page = n;
+  const img = document.createElement('img');
+  img.alt = label;
+  img.src = CFG.imgPath + CFG.imgName(n);
+  img.onload = onImgLoad;
+  img.onerror = onImgLoad;
+  div.appendChild(img);
+  return div;
+}
+
+function makeInnerPage(n) {
+  const div = document.createElement('div');
+  div.className = 'page';
+  div.dataset.page = n;
+  const img = document.createElement('img');
+  img.alt = `Page ${n}`;
+  img.loading = 'lazy';
+  img.src = CFG.imgPath + CFG.imgName(n);
+  img.onload = onImgLoad;
+  img.onerror = onImgLoad;
+  div.appendChild(img);
+  return div;
+}
+
+let loadedCount = 0;
+function onImgLoad() {
+  loadedCount++;
+  const pct = Math.round(loadedCount / TOTAL * 100);
+  const el = document.getElementById('load-progress');
+  if (el) el.textContent = pct + '%';
+  // Hide loader once all images have responded (loaded or errored)
+  if (loadedCount >= TOTAL && flipBookReady) {
+    hideLoader();
+  }
+}
+
+// Safety net: force-hide loader after 6 seconds no matter what
+setTimeout(() => { hideLoader(); }, 6000);
+
+// ── Hide loader ──
+function hideLoader() {
+  const loader = document.getElementById('loader');
+  if (!loader || loader.style.display === 'none') return;
+  loader.style.opacity = '0';
+  setTimeout(() => { loader.style.display = 'none'; }, 400);
+}
+
+// ── Init StPageFlip ──
+// Called only AFTER the layout is in its final landscape state
+function initFlipBook() {
+  if (flipBookReady) {
+    // Already initialized — just update dimensions
+    const { w, h } = getBookDims();
+    try { pageFlip.update(); } catch(e) {}
+    return;
+  }
+
+  const { w, h } = getBookDims();
+
+  // Destroy previous instance if any
+  if (pageFlip) {
+    try { pageFlip.destroy(); } catch(e) {}
+    pageFlip = null;
+    // Rebuild pages since destroy clears them
+    buildPages();
+  }
+
+  pageFlip = new St.PageFlip(document.getElementById('book'), {
+    width:  w,
+    height: h,
+    size: 'fixed',
+    minWidth:  w,
+    maxWidth:  w,
+    minHeight: h,
+    maxHeight: h,
+    drawShadow:   true,
+    flippingTime: 700,
+    usePortrait:  false,
+    startZIndex:  10,
+    autoSize:     false,
+    maxShadowOpacity: 0.6,
+    showCover: true,
+    mobileScrollSupport: false,
+    clickEventForward: true,
+    useMouseEvents: true,
+    swipeDistance: 30,
+    showPageCorners: true,
+    disableFlipByClick: false,
+  });
+
+  pageFlip.loadFromHTML(document.querySelectorAll('#book .page'));
+  document.getElementById('book').classList.add('ready');
+
+  pageFlip.on('flip', (e) => { updateUI(e.data); });
+  pageFlip.on('changeOrientation', () => { updateUI(pageFlip.getCurrentPageIndex()); });
+
+  updateUI(0);
+  flipBookReady = true;
+  hideLoader();
+  buildGrid();
+}
+
+// ── Update UI ──
+function updateUI(pageIdx) {
+  document.getElementById('prevBtn').classList.toggle('disabled', pageIdx <= 0);
+  document.getElementById('nextBtn').classList.toggle('disabled', pageIdx >= TOTAL - 2);
+
+  const ind = document.getElementById('pgind');
+  if (pageIdx === 0)           ind.textContent = 'Cover';
+  else if (pageIdx >= TOTAL-2) ind.textContent = 'End';
+  else ind.textContent = pageIdx + ' – ' + (pageIdx + 1);
+}
+
+function flipNext() { if (pageFlip) pageFlip.flipNext('bottom'); }
+function flipPrev() { if (pageFlip) pageFlip.flipPrev('bottom'); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') flipNext();
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   flipPrev();
+});
+
+// ── Grid ──
+function buildGrid() {
+  const gp = document.getElementById('gpages');
+  gp.innerHTML = '';
+  for (let p = 1; p <= TOTAL; p++) {
+    const t = document.createElement('div');
+    t.className = 'gthumb';
+    const img = document.createElement('img');
+    img.src = CFG.imgPath + CFG.imgName(p);
+    img.alt = '';
+    img.loading = 'lazy';
+    const lbl = document.createElement('div');
+    lbl.className = 'glbl';
+    lbl.textContent = p === 1 ? 'Cover' : p === TOTAL ? 'Back' : String(p);
+    t.appendChild(img); t.appendChild(lbl);
+    t.addEventListener('click', () => {
+      if (pageFlip) pageFlip.turnToPage(p - 1);
+      closeGrid();
+    });
+    gp.appendChild(t);
+  }
+}
+function openGrid()  { document.getElementById('grid-ov').classList.add('open'); }
+function closeGrid() { document.getElementById('grid-ov').classList.remove('open'); }
+
+// ── Info panel ──
+function toggleInfo() {
+  const p = document.getElementById('info-panel');
+  p.classList.toggle('open');
+  document.getElementById('info-title').textContent = CFG.title;
+  document.getElementById('info-sub').innerHTML =
+    'Photo by <strong>' + CFG.photographer + '</strong><br>Printed by <strong>' + CFG.lab + '</strong>';
+}
+
+// ── Enter Album ──
+function enterAlbum() {
+  // Play audio
+  const audio = document.getElementById('bgAudio');
+  if (audio) { audio.volume = 0.7; audio.play().catch(() => {}); }
+
+  // Show the app layer immediately
+  document.body.classList.add('force-landscape');
+
+  // Try fullscreen
+  const el = document.documentElement;
+  const fsPromise = el.requestFullscreen
+    ? el.requestFullscreen()
+    : el.webkitRequestFullscreen
+    ? el.webkitRequestFullscreen()
+    : Promise.resolve();
+
+  fsPromise
+    .then(() => {
+      if (screen.orientation && screen.orientation.lock) {
+        return screen.orientation.lock('landscape').catch(() => {});
+      }
+    })
+    .catch(() => {})
+    .finally(() => {
+      setTimeout(() => {
+        // If still portrait after fullscreen attempt, CSS-rotate the viewport
+        if (window.innerHeight > window.innerWidth) {
+          applyCSSRotation();
+        }
+        // Init the flipbook now that layout is settled
+        initFlipBook();
+      }, 350);
+    });
+}
+
+function applyCSSRotation() {
+  const w = window.innerHeight;
+  const h = window.innerWidth;
+  document.body.style.width    = w + 'px';
+  document.body.style.height   = h + 'px';
+  document.body.style.transform = 'rotate(90deg)';
+  document.body.style.transformOrigin = (h/2) + 'px ' + (h/2) + 'px';
+  document.body.style.position = 'fixed';
+  document.body.style.top  = '0';
+  document.body.style.left = '0';
+  document.body.classList.add('rotated');
+}
+
+// If device rotates naturally to landscape, undo CSS rotation and re-init
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    if (window.innerWidth > window.innerHeight) {
+      if (document.body.classList.contains('rotated')) {
+        document.body.style.transform = '';
+        document.body.style.width  = '';
+        document.body.style.height = '';
+        document.body.style.position = '';
+        document.body.classList.remove('rotated');
+      }
+      document.body.classList.add('force-landscape');
+      // Re-init so book gets correct landscape dimensions
+      flipBookReady = false;
+      setTimeout(initFlipBook, 300);
+    }
+  }, 300);
+});
+
+function toggleFS() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+  else document.exitFullscreen().catch(() => {});
+}
+function shareAlbum() {
+  if (navigator.share) navigator.share({ title: CFG.title, url: location.href }).catch(() => {});
+  else { navigator.clipboard && navigator.clipboard.writeText(location.href); alert('Link copied!'); }
+}
+
+// ── Resize (desktop) ──
+let rTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(rTimer);
+  rTimer = setTimeout(() => {
+    if (!pageFlip || !flipBookReady) return;
+    const { w, h } = getBookDims();
+    try {
+      pageFlip.updateState({ width: w, height: h });
+      pageFlip.update();
+    } catch(e) {}
+  }, 180);
+});
+
+// ── Boot ──
+document.getElementById('atitle').textContent = '✦ ' + CFG.title;
+document.getElementById('gtitle').textContent = CFG.title + ' · All Pages';
+
+buildPages();
+
+// On desktop (already landscape): init immediately
+if (window.innerWidth > window.innerHeight) {
+  setTimeout(initFlipBook, 300);
+} else {
+  // On mobile (portrait): show loader briefly, then let enterAlbum() trigger init
+  // Just hide loader after a moment since book isn't visible yet anyway
+  setTimeout(hideLoader, 800);
+}
+</script>
+</body>
+</html>
