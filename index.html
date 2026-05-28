@@ -535,7 +535,11 @@ function initFlipBook() {
   pageFlip.loadFromHTML(document.querySelectorAll('#book .page'));
   document.getElementById('book').classList.add('ready');
 
-  pageFlip.on('flip', (e) => { updateUI(e.data); });
+  pageFlip.on('flip', (e) => {
+    updateUI(e.data);
+    const audio = document.getElementById('bgAudio');
+    if (audio && audio.paused) { audio.volume = 0.7; audio.play().catch(() => {}); }
+  });
   pageFlip.on('changeOrientation', () => { updateUI(pageFlip.getCurrentPageIndex()); });
 
   updateUI(0);
